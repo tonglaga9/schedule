@@ -36,12 +36,46 @@
   .empty-cell { color: #cbd5e1; font-size: .8rem; }
   .no-schedule { text-align: center; padding: 48px 16px; color: #64748b; font-style: italic; background: #f8fafc; border-radius: 16px; border: 1px dashed #cbd5e1; }
   .footer-note { margin-top: 22px; font-size: .8rem; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+
+  /* ===== 移动端优化：整体缩小 ===== */
   @media (max-width: 640px) {
-    .app { padding: 18px 12px; } h1 { font-size: 1.3rem; }
-    .input-panel { border-radius: 24px; padding: 12px 14px; }
-    .week-input input { width: 65px; font-size: 1rem; }
-    .week-input button { padding: 8px 16px; }
-    .quick-nav { margin-left: 0; width: 100%; justify-content: center; }
+    body { padding: 8px; }
+    .app { padding: 14px 10px; border-radius: 18px; }
+    h1 { font-size: 1.1rem; gap: 6px; margin-bottom: 4px; }
+    .subhead { font-size: .72rem; padding-left: 10px; margin-bottom: 14px; border-left-width: 3px; line-height: 1.4; }
+    .input-panel { border-radius: 20px; padding: 8px 12px; gap: 8px; margin-bottom: 16px; }
+    .input-panel label { font-size: .85rem; }
+    .week-input { padding: 2px; border-radius: 30px; }
+    .week-input input { width: 52px; font-size: .9rem; padding: 6px 4px 6px 10px; }
+    .week-input button { padding: 6px 14px; font-size: .8rem; border-radius: 30px; }
+    .quick-nav { gap: 4px; margin-left: 0; width: 100%; justify-content: center; }
+    .quick-btn { padding: 3px 9px; font-size: .7rem; border-radius: 20px; }
+    .schedule-header { margin-bottom: 10px; }
+    .week-title { font-size: 1rem; gap: 8px; }
+    .week-badge { font-size: .7rem; padding: 3px 10px; }
+    .range-hint { font-size: .68rem; padding: 3px 10px; }
+    .table-container { border-radius: 12px; }
+    table { min-width: 640px; }
+    th { font-size: .7rem; padding: 8px 3px; }
+    th:first-child { width: 40px; }
+    td { font-size: .62rem; padding: 3px 2px; line-height: 1.3; }
+    td:first-child { font-size: .72rem; }
+    .course-cell { padding: 4px 4px; font-size: .6rem; border-radius: 5px; line-height: 1.3; }
+    .empty-cell { font-size: .6rem; }
+    .footer-note { font-size: .65rem; margin-top: 12px; padding-top: 10px; }
+  }
+
+  /* ===== 超小屏再缩一档 ===== */
+  @media (max-width: 380px) {
+    h1 { font-size: 1rem; }
+    .subhead { font-size: .68rem; }
+    .week-input input { width: 44px; font-size: .85rem; }
+    .week-input button { padding: 5px 10px; font-size: .75rem; }
+    .quick-btn { padding: 2px 7px; font-size: .65rem; }
+    table { min-width: 580px; }
+    th { font-size: .65rem; padding: 6px 2px; }
+    td { font-size: .58rem; padding: 2px 1px; }
+    .course-cell { padding: 3px 3px; font-size: .56rem; }
   }
 </style>
 </head>
@@ -84,23 +118,18 @@
     { start: 14, end: 17, label: '14~17周', dateRange: '12.14~1.10' }
   ];
 
-  // ========== 核心数据 ==========
-  // day: 1=周一, 2=周二, ..., 7=周日
-  // startSlot / endSlot: 起始节 ~ 结束节（合并单元格）
-  // 行号=节次，列=星期几
-
   // ---- 1~5周 ----
   const area1_5 = [
-    { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },   // 周二 第1-2节
-    { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },   // 周四 第1-2节
-    { day: 3, startSlot: 12, endSlot: 14, name: '马克思\n综合楼202' }, // 周三 第12-14节
+    { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 3, startSlot: 12, endSlot: 14, name: '马克思\n综合楼202' },
   ];
 
   // ---- 6~9周 ----
   const area6_9 = [
     { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
     { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
-    { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },  // 周三 第2-5节
+    { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },
     { day: 3, startSlot: 12, endSlot: 14, name: '马克思\n综合楼202' },
   ];
 
@@ -109,12 +138,12 @@
     { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
     { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
     { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },
-    { day: 6, startSlot: 2, endSlot: 4, name: '科技道德\n综合楼903' }, // 周六 第2-4节 (上午三节)
-    { day: 7, startSlot: 2, endSlot: 5, name: '科技道德\n综合楼903' }, // 周日 第2-5节 (上午四节) ✅
-    { day: 1, startSlot: 6, endSlot: 9, name: '文献综述\n19楼215' },   // 周一 第6-9节
-    { day: 6, startSlot: 6, endSlot: 9, name: '科技道德\n综合楼903' }, // 周六 第6-9节
+    { day: 6, startSlot: 2, endSlot: 4, name: '科技道德\n综合楼903' },
+    { day: 7, startSlot: 2, endSlot: 5, name: '科技道德\n综合楼903' },
+    { day: 1, startSlot: 6, endSlot: 9, name: '文献综述\n19楼215' },
+    { day: 6, startSlot: 6, endSlot: 9, name: '科技道德\n综合楼903' },
     { day: 3, startSlot: 12, endSlot: 14, name: '马克思\n综合楼202' },
-    { day: 6, startSlot: 12, endSlot: 14, name: '科技道德\n综合楼903' }, // 周六 第12-14节
+    { day: 6, startSlot: 12, endSlot: 14, name: '科技道德\n综合楼903' },
   ];
 
   // ---- 11周 ----
@@ -140,7 +169,7 @@
     { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
     { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },
     { day: 1, startSlot: 6, endSlot: 9, name: '文献综述\n19楼215' },
-    { day: 3, startSlot: 6, endSlot: 9, name: '地球空间技术\n19楼207' }, // 周三 第6-9节
+    { day: 3, startSlot: 6, endSlot: 9, name: '地球空间技术\n19楼207' },
   ];
 
   // ---- 14~17周 ----
@@ -149,13 +178,12 @@
     { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
     { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },
     { day: 1, startSlot: 6, endSlot: 9, name: '文献综述\n19楼215' },
-    { day: 2, startSlot: 6, endSlot: 9, name: '遥感信息智能\n分析应用\n19楼203' }, // 周二 第6-9节
-    { day: 3, startSlot: 6, endSlot: 9, name: '地球空间技术\n19楼207' },           // 周三 第6-9节
-    { day: 4, startSlot: 6, endSlot: 9, name: '遥感信息智能\n分析应用\n19楼203' }, // 周四 第6-9节
-    { day: 5, startSlot: 6, endSlot: 9, name: '地球空间技术\n19楼207' },           // 周五 第6-9节
+    { day: 2, startSlot: 6, endSlot: 9, name: '遥感信息智能\n分析应用\n19楼203' },
+    { day: 3, startSlot: 6, endSlot: 9, name: '地球空间技术\n19楼207' },
+    { day: 4, startSlot: 6, endSlot: 9, name: '遥感信息智能\n分析应用\n19楼203' },
+    { day: 5, startSlot: 6, endSlot: 9, name: '地球空间技术\n19楼207' },
   ];
 
-  // 按周次组装
   const scheduleByWeek = {};
   for (let w = 1; w <= 5; w++)  scheduleByWeek[w] = area1_5;
   for (let w = 6; w <= 9; w++)  scheduleByWeek[w] = area6_9;
@@ -165,7 +193,6 @@
   scheduleByWeek[13] = area13;
   for (let w = 14; w <= 17; w++) scheduleByWeek[w] = area14_17;
 
-  // ========== 工具 ==========
   function getWeekRangeInfo(week) {
     for (const r of weekRanges) {
       if (week >= r.start && week <= r.end) return { label: r.label, dateRange: r.dateRange };
@@ -194,7 +221,6 @@
     return grid;
   }
 
-  // ========== DOM ==========
   const weekInput = document.getElementById('weekInput');
   const queryBtn = document.getElementById('queryBtn');
   const weekDisplay = document.getElementById('weekDisplay');
@@ -203,7 +229,6 @@
   const tableContainer = document.getElementById('tableContainer');
   const quickNav = document.getElementById('quickNav');
 
-  // ========== 渲染 ==========
   function renderSchedule(week) {
     week = Number(week);
     if (isNaN(week) || week < 1 || week > 17) {
@@ -247,7 +272,7 @@
             skip[day]++;
           }
         } else if (cell && !cell.isStart) {
-          // 兜底：已被跳过
+          // 兜底
         } else {
           html += `<td><span class="empty-cell">—</span></td>`;
         }
