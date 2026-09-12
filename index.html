@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📅 动态课表查询 · 1~17周</title>
+<style>
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  body { background: #f1f5f9; margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
+  .app { max-width: 1400px; width: 100%; background: #fff; border-radius: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); padding: 28px 24px; }
+  h1 { font-size: 1.7rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 10px; margin: 0 0 8px 0; }
+  .subhead { color: #475569; margin-bottom: 24px; font-size: .95rem; border-left: 4px solid #3b82f6; padding-left: 14px; background: #f8fafc; border-radius: 0 10px 10px 0; line-height: 1.5; }
+  .input-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; background: #f8fafc; padding: 14px 20px; border-radius: 50px; margin-bottom: 28px; border: 1px solid #e2e8f0; }
+  .input-panel label { font-weight: 600; color: #1e293b; font-size: 1.05rem; }
+  .week-input { display: flex; align-items: center; background: #fff; border-radius: 40px; border: 1px solid #cbd5e1; padding: 4px; }
+  .week-input input { width: 90px; padding: 10px 6px 10px 18px; font-size: 1.15rem; font-weight: 700; border: none; outline: none; background: transparent; color: #0f172a; text-align: center; }
+  .week-input input::-webkit-outer-spin-button, .week-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .week-input input[type=number] { -moz-appearance: textfield; }
+  .week-input button { background: #3b82f6; border: none; color: #fff; font-weight: 600; padding: 10px 26px; border-radius: 40px; font-size: .95rem; cursor: pointer; transition: background .15s; white-space: nowrap; }
+  .week-input button:hover { background: #2563eb; }
+  .quick-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .quick-btn { background: #fff; border: 1px solid #cbd5e1; color: #1e293b; font-weight: 500; padding: 6px 14px; border-radius: 30px; font-size: .85rem; cursor: pointer; transition: all .1s; }
+  .quick-btn:hover { background: #e2e8f0; }
+  .quick-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+  .schedule-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 16px; }
+  .week-title { font-size: 1.4rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 12px; }
+  .week-badge { background: #dbeafe; color: #1e40af; border-radius: 40px; padding: 5px 16px; font-size: .9rem; font-weight: 600; }
+  .range-hint { color: #64748b; font-size: .85rem; background: #f1f5f9; padding: 5px 14px; border-radius: 40px; }
+  .table-container { overflow-x: auto; border-radius: 20px; border: 1px solid #e2e8f0; background: #fff; }
+  table { width: 100%; border-collapse: collapse; min-width: 860px; table-layout: fixed; }
+  th { background: #f8fafc; font-weight: 600; color: #334155; font-size: .85rem; padding: 14px 6px; border: 1px solid #e2e8f0; text-align: center; }
+  th:first-child { width: 60px; background: #f1f5f9; color: #0f172a; }
+  td { border: 1px solid #e9eef3; padding: 6px 5px; vertical-align: middle; text-align: center; background: #fff; font-size: .8rem; line-height: 1.4; word-break: break-word; }
+  td:first-child { background: #f8fafc; font-weight: 700; color: #0f172a; font-size: .95rem; border-right: 2px solid #e2e8f0; }
+  .course-cell { background: #fef9c3; color: #854d0e; border-radius: 8px; padding: 8px 8px; display: block; font-weight: 500; font-size: .78rem; line-height: 1.5; white-space: pre-line; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+  .empty-cell { color: #cbd5e1; font-size: .8rem; }
+  .no-schedule { text-align: center; padding: 48px 16px; color: #64748b; font-style: italic; background: #f8fafc; border-radius: 16px; border: 1px dashed #cbd5e1; }
+  .footer-note { margin-top: 22px; font-size: .8rem; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+  @media (max-width: 640px) {
+    .app { padding: 18px 12px; } h1 { font-size: 1.3rem; }
+    .input-panel { border-radius: 24px; padding: 12px 14px; }
+    .week-input input { width: 65px; font-size: 1rem; }
+    .week-input button { padding: 8px 16px; }
+    .quick-nav { margin-left: 0; width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>📚 动态课表查询</h1>
+  <div class="subhead">输入第几周（1~17周）· 合并单元格表示连续多节同一门课</div>
+
+  <div class="input-panel">
+    <label for="weekInput">🔍 第</label>
+    <div class="week-input">
+      <input type="number" id="weekInput" min="1" max="17" value="1" step="1" />
+      <button id="queryBtn">查询</button>
+    </div>
+    <div class="quick-nav" id="quickNav"></div>
+  </div>
+
+  <div class="schedule-header">
+    <div class="week-title">
+      <span id="weekDisplay">第 1 周</span>
+      <span class="week-badge" id="rangeBadge">1~5周</span>
+    </div>
+    <div class="range-hint" id="dateHint">9.14~10.18</div>
+  </div>
+
+  <div class="table-container" id="tableContainer"></div>
+  <div class="footer-note">⏱ 合并单元格表示连续多节同一门课 · “—” 表示无课</div>
+</div>
+
+<script>
+(function () {
+  // ========== 周次范围 ==========
+  const weekRanges = [
+    { start: 1,  end: 5,  label: '1~5周',   dateRange: '9.14~10.18' },
+    { start: 6,  end: 9,  label: '6~9周',   dateRange: '10.19~11.15' },
+    { start: 10, end: 10, label: '10周',    dateRange: '11.16~11.22' },
+    { start: 11, end: 11, label: '11周',    dateRange: '11.23~11.29' },
+    { start: 12, end: 12, label: '12周',    dateRange: '11.30~12.06' },
+    { start: 13, end: 13, label: '13周',    dateRange: '12.07~12.13' },
+    { start: 14, end: 17, label: '14~17周', dateRange: '12.14~1.10' }
+  ];
+
+  // ========== 核心数据 ==========
+  // day: 1=周一, 2=周二, ..., 7=周日
+  // startSlot / endSlot: 起始节 ~ 结束节（合并单元格）
+  // 行号=节次，列=星期几
+
+  // ---- 1~5周 ----
+  const area1_5 = [
+    { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },   // 周二 第1-2节
+    { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },   // 周四 第1-2节
+    { day: 3, startSlot: 12, endSlot: 14, name: '马克思\n综合楼202' }, // 周三 第12-14节
+  ];
+
+  // ---- 6~9周 ----
+  const area6_9 = [
+    { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },  // 周三 第2-5节
+    { day: 3, startSlot: 12, endSlot: 14, name: '马克思\n综合楼202' },
+  ];
+
+  // ---- 10周 ----
+  const area10 = [
+    { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },
+    { day: 6, startSlot: 2, endSlot: 4, name: '科技道德\n综合楼903' }, // 周六 第2-4节 (上午三节)
+    { day: 7, startSlot: 2, endSlot: 5, name: '科技道德\n综合楼903' }, // 周日 第2-5节 (上午四节) ✅
+    { day: 1, startSlot: 6, endSlot: 9, name: '文献综述\n19楼215' },   // 周一 第6-9节
+    { day: 6, startSlot: 6, endSlot: 9, name: '科技道德\n综合楼903' }, // 周六 第6-9节
+    { day: 3, startSlot: 12, endSlot: 14, name: '马克思\n综合楼202' },
+    { day: 6, startSlot: 12, endSlot: 14, name: '科技道德\n综合楼903' }, // 周六 第12-14节
+  ];
+
+  // ---- 11周 ----
+  const area11 = [
+    { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },
+    { day: 1, startSlot: 6, endSlot: 9, name: '文献综述\n19楼215' },
+    { day: 3, startSlot: 12, endSlot: 14, name: '马克思\n综合楼202' },
+  ];
+
+  // ---- 12周 ----
+  const area12 = [
+    { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },
+    { day: 1, startSlot: 6, endSlot: 9, name: '文献综述\n19楼215' },
+  ];
+
+  // ---- 13周 ----
+  const area13 = [
+    { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },
+    { day: 1, startSlot: 6, endSlot: 9, name: '文献综述\n19楼215' },
+    { day: 3, startSlot: 6, endSlot: 9, name: '地球空间技术\n19楼207' }, // 周三 第6-9节
+  ];
+
+  // ---- 14~17周 ----
+  const area14_17 = [
+    { day: 2, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 4, startSlot: 1, endSlot: 2, name: '英语\n科研楼312' },
+    { day: 3, startSlot: 2, endSlot: 5, name: '测绘前沿\n19楼215' },
+    { day: 1, startSlot: 6, endSlot: 9, name: '文献综述\n19楼215' },
+    { day: 2, startSlot: 6, endSlot: 9, name: '遥感信息智能\n分析应用\n19楼203' }, // 周二 第6-9节
+    { day: 3, startSlot: 6, endSlot: 9, name: '地球空间技术\n19楼207' },           // 周三 第6-9节
+    { day: 4, startSlot: 6, endSlot: 9, name: '遥感信息智能\n分析应用\n19楼203' }, // 周四 第6-9节
+    { day: 5, startSlot: 6, endSlot: 9, name: '地球空间技术\n19楼207' },           // 周五 第6-9节
+  ];
+
+  // 按周次组装
+  const scheduleByWeek = {};
+  for (let w = 1; w <= 5; w++)  scheduleByWeek[w] = area1_5;
+  for (let w = 6; w <= 9; w++)  scheduleByWeek[w] = area6_9;
+  scheduleByWeek[10] = area10;
+  scheduleByWeek[11] = area11;
+  scheduleByWeek[12] = area12;
+  scheduleByWeek[13] = area13;
+  for (let w = 14; w <= 17; w++) scheduleByWeek[w] = area14_17;
+
+  // ========== 工具 ==========
+  function getWeekRangeInfo(week) {
+    for (const r of weekRanges) {
+      if (week >= r.start && week <= r.end) return { label: r.label, dateRange: r.dateRange };
+    }
+    return { label: '未知', dateRange: '' };
+  }
+
+  function buildGrid(courseList) {
+    const grid = {};
+    for (let d = 1; d <= 7; d++) {
+      grid[d] = {};
+      for (let s = 1; s <= 14; s++) grid[d][s] = null;
+    }
+    courseList.forEach(c => {
+      const rowspan = c.endSlot - c.startSlot + 1;
+      for (let s = c.startSlot; s <= c.endSlot; s++) {
+        grid[c.day][s] = {
+          name: c.name,
+          rowspan: rowspan,
+          isStart: s === c.startSlot,
+          startSlot: c.startSlot,
+          endSlot: c.endSlot
+        };
+      }
+    });
+    return grid;
+  }
+
+  // ========== DOM ==========
+  const weekInput = document.getElementById('weekInput');
+  const queryBtn = document.getElementById('queryBtn');
+  const weekDisplay = document.getElementById('weekDisplay');
+  const rangeBadge = document.getElementById('rangeBadge');
+  const dateHint = document.getElementById('dateHint');
+  const tableContainer = document.getElementById('tableContainer');
+  const quickNav = document.getElementById('quickNav');
+
+  // ========== 渲染 ==========
+  function renderSchedule(week) {
+    week = Number(week);
+    if (isNaN(week) || week < 1 || week > 17) {
+      tableContainer.innerHTML = `<div class="no-schedule">⚠️ 请输入 1~17 之间的周次</div>`;
+      weekDisplay.textContent = '第 ? 周';
+      rangeBadge.textContent = '--';
+      dateHint.textContent = '--';
+      return;
+    }
+
+    const rangeInfo = getWeekRangeInfo(week);
+    weekDisplay.textContent = `第 ${week} 周`;
+    rangeBadge.textContent = rangeInfo.label;
+    dateHint.textContent = rangeInfo.dateRange;
+
+    const courseList = scheduleByWeek[week] || [];
+    const grid = buildGrid(courseList);
+
+    const dayNames = ['一', '二', '三', '四', '五', '六', '日'];
+    const maxSlot = 14;
+
+    let html = '<table><thead><tr><th>节次</th>';
+    for (let d = 1; d <= 7; d++) html += `<th>周${dayNames[d-1]}</th>`;
+    html += '</tr></thead><tbody>';
+
+    const skip = {};
+    for (let d = 1; d <= 7; d++) skip[d] = 0;
+
+    for (let slot = 1; slot <= maxSlot; slot++) {
+      html += `<tr><td>${slot}</td>`;
+      for (let day = 1; day <= 7; day++) {
+        if (skip[day] > 0) {
+          skip[day]--;
+          continue;
+        }
+        const cell = grid[day][slot];
+        if (cell && cell.isStart) {
+          const safeName = cell.name.replace(/\n/g, '<br>');
+          html += `<td rowspan="${cell.rowspan}"><span class="course-cell">${safeName}</span></td>`;
+          for (let s = slot + 1; s <= cell.endSlot; s++) {
+            skip[day]++;
+          }
+        } else if (cell && !cell.isStart) {
+          // 兜底：已被跳过
+        } else {
+          html += `<td><span class="empty-cell">—</span></td>`;
+        }
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    tableContainer.innerHTML = html;
+  }
+
+  function setActiveQuickButton(week) {
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+      btn.classList.toggle('active', Number(btn.dataset.week) === week);
+    });
+  }
+
+  function handleQuery() {
+    let week = parseInt(weekInput.value, 10);
+    if (isNaN(week)) week = 1;
+    week = Math.min(17, Math.max(1, week));
+    weekInput.value = week;
+    renderSchedule(week);
+    setActiveQuickButton(week);
+  }
+
+  function buildQuickButtons() {
+    let html = '';
+    for (let w = 1; w <= 17; w++) html += `<button class="quick-btn" data-week="${w}">${w}</button>`;
+    quickNav.innerHTML = html;
+    quickNav.addEventListener('click', (e) => {
+      const btn = e.target.closest('.quick-btn');
+      if (!btn) return;
+      const week = Number(btn.dataset.week);
+      weekInput.value = week;
+      renderSchedule(week);
+      setActiveQuickButton(week);
+    });
+  }
+
+  function init() {
+    buildQuickButtons();
+    weekInput.value = 1;
+    renderSchedule(1);
+    setActiveQuickButton(1);
+    queryBtn.addEventListener('click', handleQuery);
+    weekInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleQuery(); });
+    weekInput.addEventListener('change', () => {
+      let v = parseInt(weekInput.value, 10);
+      if (isNaN(v)) v = 1;
+      weekInput.value = Math.min(17, Math.max(1, v));
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
